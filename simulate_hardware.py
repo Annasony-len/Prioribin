@@ -3,7 +3,7 @@ import time
 import random
 
 # --- CONFIGURATION ---
-BASE_URL = 'http://127.0.0.1:5000'
+BASE_URL = 'https://prioribin.pythonanywhere.com'
 UPDATE_URL = f'{BASE_URL}/api/update_bin'
 GET_BINS_URL = f'{BASE_URL}/api/get_all_bins'
 
