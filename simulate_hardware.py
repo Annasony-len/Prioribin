@@ -36,8 +36,19 @@ try:
             time.sleep(15)
             continue
 
+        # Hardware bins! These are completely ignored by the simulator.
+        # Any other bin ID you create in the Admin Dashboard will automatically get simulated.
+        IGNORED_BINS = ["BIN-01", "BIN-02"]
+
+        simulated_count = 0
         for bin_data in active_bins:
             b_id = bin_data['bin_id']
+            
+            # Skip any bin that is reserved for real physical hardware
+            if b_id in IGNORED_BINS:
+                continue
+                
+            simulated_count += 1
             server_fill_level = bin_data['fill_level'] # The level currently in DB
             
             # Initialize local state if new
