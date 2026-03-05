@@ -33,7 +33,7 @@ try:
         
         if not active_bins:
             print("⚠️  No bins found in system. Please add a bin in Admin Dashboard.")
-            time.sleep(5)
+            time.sleep(15)
             continue
 
         for bin_data in active_bins:
@@ -89,7 +89,7 @@ try:
             time.sleep(1) # Short pause between bins
 
         print("\n⏳ Cycle complete. Waiting for next sensor reading...\n")
-        time.sleep(4) # Wait 4 seconds before next batch
+        time.sleep(15) # Wait 15 seconds before next batch
 
 except KeyboardInterrupt:
     print("\n🛑 Simulation Stopped.")

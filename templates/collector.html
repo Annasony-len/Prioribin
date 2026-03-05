@@ -197,7 +197,24 @@
 <body>
     <div id="map"></div>
 
-    <div class="sidebar">
+    <!-- Navigation Overlay -->
+    <div id="nav-overlay" class="d-none"
+        style="position: absolute; top: 20px; right: 20px; z-index: 2000; background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); box-shadow: var(--shadow-xl); border: 1px solid rgba(0,0,0,0.05); min-width: 220px;">
+        <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2"><i
+                class="bi bi-sign-turn-right-fill text-primary"></i> <span id="nav-target-name">Destination</span></h6>
+        <div class="fw-bold text-success mb-0" style="font-size: 2rem; letter-spacing: -1px;" id="nav-time">-- min</div>
+        <p class="text-muted small mb-3 fw-medium" id="nav-dist">-- km</p>
+        <button id="btn-start-nav" onclick="startActiveNavigation()"
+            class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow-sm mb-2"><i class="bi bi-play-fill me-1"></i>
+            Start Run</button>
+        <button id="btn-end-nav" onclick="stopActiveNavigation()"
+            class="btn btn-danger w-100 py-2 rounded-pill fw-bold shadow-sm mb-2 d-none"><i
+                class="bi bi-stop-fill me-1"></i> End Route</button>
+        <button onclick="cancelRoute()"
+            class="btn btn-light w-100 py-1 rounded-pill text-muted small fw-medium">Cancel</button>
+    </div>
+
+    <div class="sidebar" id="main-sidebar">
         <!-- Header Profile -->
         <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
@@ -231,7 +248,8 @@
             {% set icon_class = 'bi-exclamation-triangle-fill text-danger' if bin.status == 'Critical' else
             'bi-exclamation-circle-fill text-warning' %}
 
-            <div class="task-card p-3 shadow-sm {{ border_class }}">
+            <div class="task-card p-3 shadow-sm {{ border_class }}" data-lat="{{ bin.location_lat }}"
+                data-lon="{{ bin.location_lon }}">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <i class="bi {{ icon_class }}"></i>
@@ -241,11 +259,10 @@
                 </div>
 
                 <div class="mt-3 d-flex gap-2">
-                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ bin.location_lat }},{{ bin.location_lon }}"
-                        target="_blank"
+                    <button onclick="previewRoute({{ bin.location_lat }}, {{ bin.location_lon }}, '{{ bin.bin_id }}')"
                         class="btn btn-action btn-nav d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-geo-alt-fill"></i> Navigate
-                    </a>
+                        <i class="bi bi-geo-alt-fill"></i> Route
+                    </button>
                     <button onclick="markCollected('{{ bin.bin_id }}')"
                         class="btn btn-action btn-clean d-flex align-items-center justify-content-center gap-2">
                         <i class="bi bi-check-circle-fill"></i> Cleaned
@@ -276,13 +293,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Init Map with Voyager Light Theme
+        // Init Map
         var map = L.map('map', { zoomControl: false }).setView([9.9312, 76.2673], 13);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CARTO',
-            subdomains: 'abcd',
+        // Map: Google Vibrant Streets
+        L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google Maps',
             maxZoom: 20
         }).addTo(map);
 
@@ -302,6 +319,10 @@
 
         // Custom Marker for Driver
         var driverMarker = null;
+        var routingControl = null;
+        var isNavigating = false;
+        var driverLat = null;
+        var driverLon = null;
 
         // --- GPS & TRACKING LOGIC ---
         function startTracking() {
@@ -310,6 +331,9 @@
                 navigator.geolocation.watchPosition((position) => {
                     var lat = position.coords.latitude;
                     var lon = position.coords.longitude;
+
+                    driverLat = lat;
+                    driverLon = lon;
 
                     // Update UI Status Pill
                     var statusPill = document.getElementById('gps-status');
@@ -323,8 +347,23 @@
                         }).addTo(map).bindPopup(`<strong>You (${collectorName})</strong>`);
                         // Center map on driver initially
                         map.setView([lat, lon], 14);
+
+                        // INITIALIZE CONTINUOUS ROUTE ONCE WE HAVE GPS
+                        calculateContinuousRoute();
                     } else {
                         driverMarker.setLatLng([lat, lon]);
+                    }
+
+                    if (isNavigating) {
+                        map.setView([lat, lon], 18);
+                        // If navigating, we might want to update the origin of the route dynamically
+                        if (routingControl) {
+                            var wps = routingControl.getWaypoints();
+                            if (wps.length > 0) {
+                                wps[0] = L.latLng(lat, lon);
+                                routingControl.setWaypoints(wps);
+                            }
+                        }
                     }
 
                     function getDist(lat1, lon1, lat2, lon2) {
@@ -333,6 +372,7 @@
                         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                     }
 
+                    // Sort Task Cards by Distance
                     var taskCards = document.querySelectorAll('.task-card');
                     var binsList = [];
                     taskCards.forEach(function (card) {
@@ -378,6 +418,106 @@
             }
         }
 
+        // --- MULTI-STOP ROUTING LOGIC ---
+        function calculateContinuousRoute() {
+            if (!driverLat || !driverLon) return;
+
+            // Collect all remaining bins from DOM or JS array
+            var taskCards = document.querySelectorAll('.task-card');
+
+            if (taskCards.length === 0) {
+                if (routingControl) map.removeControl(routingControl);
+                document.getElementById('nav-overlay').classList.add('d-none');
+                return;
+            }
+
+            // Start array with driver location
+            var routeWaypoints = [L.latLng(driverLat, driverLon)];
+
+            // To do a simple greedy TSP (Nearest Neighbor):
+            // 1. Current pos = driverLat/Lon
+            // 2. Find nearest remaining bin
+            // 3. Add to routeWaypoints, remove from remaining
+            // 4. Repeat until no remaining.
+
+            var remainingBins = [];
+            taskCards.forEach(c => {
+                remainingBins.push({
+                    lat: parseFloat(c.getAttribute('data-lat')),
+                    lon: parseFloat(c.getAttribute('data-lon'))
+                });
+            });
+
+            var currPoint = { lat: driverLat, lon: driverLon };
+
+            while (remainingBins.length > 0) {
+                var nearestIdx = 0;
+                var minDist = Infinity;
+
+                for (var i = 0; i < remainingBins.length; i++) {
+                    var d = Math.pow(remainingBins[i].lat - currPoint.lat, 2) + Math.pow(remainingBins[i].lon - currPoint.lon, 2); // quick dist
+                    if (d < minDist) {
+                        minDist = d;
+                        nearestIdx = i;
+                    }
+                }
+
+                var bestBin = remainingBins.splice(nearestIdx, 1)[0];
+                routeWaypoints.push(L.latLng(bestBin.lat, bestBin.lon));
+                currPoint = bestBin;
+            }
+
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: routeWaypoints,
+                routeWhileDragging: false,
+                addWaypoints: false,
+                createMarker: function () { return null; }, // Hide default markers
+                show: false, // Hide default instructions panel
+                lineOptions: {
+                    styles: [{ color: '#2563EB', opacity: 0.9, weight: 6 }] // Distinct blue line representing full route
+                }
+            }).addTo(map);
+
+            routingControl.on('routesfound', function (e) {
+                var routes = e.routes;
+                var summary = routes[0].summary;
+                document.getElementById('nav-time').innerText = Math.round(summary.totalTime / 60) + ' min';
+                document.getElementById('nav-dist').innerText = (summary.totalDistance / 1000).toFixed(1) + ' km';
+            });
+
+            document.getElementById('nav-target-name').innerText = "Full Route Active";
+            document.getElementById('nav-overlay').classList.remove('d-none');
+        }
+
+        function startActiveNavigation() {
+            isNavigating = true;
+            document.getElementById('btn-start-nav').classList.add('d-none');
+            document.getElementById('btn-end-nav').classList.remove('d-none');
+            document.getElementById('main-sidebar').style.display = 'none'; // Hide sidebar
+            if (driverLat && driverLon) {
+                map.setView([driverLat, driverLon], 18);
+            }
+        }
+
+        function stopActiveNavigation() {
+            isNavigating = false;
+            document.getElementById('btn-start-nav').classList.remove('d-none');
+            document.getElementById('btn-end-nav').classList.add('d-none');
+            document.getElementById('main-sidebar').style.display = 'flex';
+            if (driverLat && driverLon) {
+                map.setView([driverLat, driverLon], 14); // Zoom out
+            }
+        }
+
+        function cancelRoute() {
+            // Cancel does nothing except stop active mode now since it's an always-on continuous route
+            stopActiveNavigation();
+        }
+
         // --- MARK CLEANED ACTION ---
         function markCollected(binId) {
             if (confirm("Confirm collection for " + binId + "?")) {
@@ -387,8 +527,7 @@
                     body: JSON.stringify({ collector_name: collectorName }) // Send Name
                 }).then(res => res.json()).then(data => {
                     if (data.success) {
-                        // Create Bootstrap Toast (optional) or just reload
-                        location.reload();
+                        location.reload(); // Reloading will fetch new DB state, dropping the cleaned bin from the queue and re-running calc.
                     }
                 });
             }

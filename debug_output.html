@@ -15,7 +15,7 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="/static/style.css">
 
     <style>
         .dashboard-header {
@@ -132,38 +132,6 @@
             background-color: var(--danger-light);
             color: var(--danger);
         }
-
-        /* Custom Map Icons */
-        .custom-map-icon {
-            background: none;
-            border: none;
-        }
-
-        .icon-wrapper {
-            width: 36px;
-            height: 36px;
-            background-color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 2px solid;
-            transition: transform 0.2s;
-        }
-
-        .icon-wrapper:hover {
-            transform: scale(1.1);
-        }
-
-        .icon-wrapper i {
-            font-size: 1.1rem;
-        }
-
-        /* Tooltip positioning override */
-        .leaflet-tooltip-right::before {
-            border-right-color: transparent !important;
-        }
     </style>
 </head>
 
@@ -197,7 +165,7 @@
                     <div>
                         <h6 class="text-muted mb-1 text-uppercase fw-semibold"
                             style="letter-spacing: 0.05em; font-size: 0.75rem;">Initialized Bins</h6>
-                        <h3 class="mb-0 fw-bold">{{ bins|length }}</h3>
+                        <h3 class="mb-0 fw-bold">2</h3>
                     </div>
                 </div>
             </div>
@@ -281,48 +249,44 @@
 
                 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
 
-                    {% for bin in bins %}
+                    
                     <!-- Determine initial theme -->
-                    {% set theme_class = 'theme-success' %}
-                    {% set badge_class = 'theme-success-badge' %}
-                    {% if bin.status == 'Critical' %}
-                    {% set theme_class = 'theme-danger' %}
-                    {% set badge_class = 'theme-danger-badge' %}
-                    {% elif bin.status == 'Warning' %}
-                    {% set theme_class = 'theme-warning' %}
-                    {% set badge_class = 'theme-warning-badge' %}
-                    {% endif %}
+                    
+                    
+                    
+                    
+                    
+                    
 
                     <div class="col">
-                        <div id="card-{{ bin.bin_id }}"
-                            class="card bin-card h-100 shadow-sm rounded-card shadow-hover {{ theme_class }}">
+                        <div id="card-Main Entrance"
+                            class="card bin-card h-100 shadow-sm rounded-card shadow-hover theme-danger">
                             <div
                                 class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-bold text-dark">{{ bin.bin_id }}</h6>
-                                <span id="status-{{ bin.bin_id }}"
-                                    class="badge rounded-pill fw-medium {{ badge_class }} px-2 py-1">{{ bin.status
-                                    }}</span>
+                                <h6 class="mb-0 fw-bold text-dark">Main Entrance</h6>
+                                <span id="status-Main Entrance"
+                                    class="badge rounded-pill fw-medium theme-danger-badge px-2 py-1">Critical</span>
                             </div>
 
                             <div class="card-body text-center px-4 py-3">
-                                <h1 id="text-{{ bin.bin_id }}" class="display-3 fw-bold text-value mb-0"
-                                    style="letter-spacing: -0.05em;">{{ bin.fill_level }}<span class="fs-4">%</span>
+                                <h1 id="text-Main Entrance" class="display-3 fw-bold text-value mb-0"
+                                    style="letter-spacing: -0.05em;">100<span class="fs-4">%</span>
                                 </h1>
                                 <p class="text-muted small fw-medium mt-1 mb-4">Current Capacity</p>
 
                                 <div class="bin-progress w-100 overflow-hidden">
-                                    <div id="bar-{{ bin.bin_id }}" class="bin-progress-bar h-100 bar-fill"
-                                        style="width: {{ bin.fill_level }}%"></div>
+                                    <div id="bar-Main Entrance" class="bin-progress-bar h-100 bar-fill"
+                                        style="width: 100%"></div>
                                 </div>
                             </div>
 
                             <div class="card-footer bg-transparent border-0 pb-4 px-4 pt-0 d-flex gap-2">
-                                <a href="/history/{{ bin.bin_id }}"
+                                <a href="/history/Main Entrance"
                                     class="btn btn-light border flex-grow-1 btn-sm rounded-pill fw-medium text-muted hover-dark">
                                     <i class="bi bi-clock-history"></i> Logs
                                 </a>
-                                <form action="/delete_bin/{{ bin.bin_id }}" method="POST" class="m-0"
-                                    onsubmit="return confirm('Remove unit {{ bin.bin_id }} from system?');">
+                                <form action="/delete_bin/Main Entrance" method="POST" class="m-0"
+                                    onsubmit="return confirm('Remove unit Main Entrance from system?');">
                                     <button type="submit"
                                         class="btn btn-light border btn-sm text-danger rounded-pill px-3 hover-danger"
                                         title="Remove Bin">
@@ -332,16 +296,51 @@
                             </div>
                         </div>
                     </div>
-                    {% else %}
-                    <div class="col-12 py-5 text-center px-4">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3"
-                            style="width: 80px; height: 80px;">
-                            <i class="bi bi-inbox text-muted fs-1"></i>
+                    
+                    <!-- Determine initial theme -->
+                    
+                    
+                    
+
+                    <div class="col">
+                        <div id="card-MainblockBIN"
+                            class="card bin-card h-100 shadow-sm rounded-card shadow-hover theme-success">
+                            <div
+                                class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold text-dark">MainblockBIN</h6>
+                                <span id="status-MainblockBIN"
+                                    class="badge rounded-pill fw-medium theme-success-badge px-2 py-1">Normal</span>
+                            </div>
+
+                            <div class="card-body text-center px-4 py-3">
+                                <h1 id="text-MainblockBIN" class="display-3 fw-bold text-value mb-0"
+                                    style="letter-spacing: -0.05em;">45<span class="fs-4">%</span>
+                                </h1>
+                                <p class="text-muted small fw-medium mt-1 mb-4">Current Capacity</p>
+
+                                <div class="bin-progress w-100 overflow-hidden">
+                                    <div id="bar-MainblockBIN" class="bin-progress-bar h-100 bar-fill"
+                                        style="width: 45%"></div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer bg-transparent border-0 pb-4 px-4 pt-0 d-flex gap-2">
+                                <a href="/history/MainblockBIN"
+                                    class="btn btn-light border flex-grow-1 btn-sm rounded-pill fw-medium text-muted hover-dark">
+                                    <i class="bi bi-clock-history"></i> Logs
+                                </a>
+                                <form action="/delete_bin/MainblockBIN" method="POST" class="m-0"
+                                    onsubmit="return confirm('Remove unit MainblockBIN from system?');">
+                                    <button type="submit"
+                                        class="btn btn-light border btn-sm text-danger rounded-pill px-3 hover-danger"
+                                        title="Remove Bin">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <h4 class="fw-bold text-dark">No Active Sensors</h4>
-                        <p class="text-muted">Deploy a new bin from the panel to begin monitoring.</p>
                     </div>
-                    {% endfor %}
+                    
 
                 </div>
             </div>
@@ -382,23 +381,19 @@
         var collectorMarkers = {};
 
         // Initial pass to render existing bins locally via template engine
-        {% for bin in bins %}
-        var color = "{{ '#F43F5E' if bin.status == 'Critical' else ('#F59E0B' if bin.status == 'Warning' else '#10B981') }}";
-        var iconHtml = `<div class='icon-wrapper' style='border-color: ${color}; color: ${color};'><i class='bi bi-trash3-fill'></i></div>`;
-
-        var customIcon = L.divIcon({
-            html: iconHtml,
-            className: 'custom-map-icon',
-            iconSize: [36, 36],
-            iconAnchor: [18, 18],
-            tooltipAnchor: [15, 0]
-        });
-
-        var m = L.marker([{{ bin.location_lat }}, {{ bin.location_lon }}], { icon: customIcon })
-        .addTo(map).bindPopup("<div class='text-center p-1'><strong class='d-block mb-1'>{{ bin.bin_id }}</strong><span class='badge bg-light text-dark border'>{{ bin.fill_level }}% Full</span></div>")
-            .bindTooltip("{{ bin.bin_id }}", { permanent: true, direction: 'right', className: 'fw-bold bg-white text-dark shadow-sm border-0 py-1 px-2 rounded-pill', offset: [15, 0] });
-        binMarkers["{{ bin.bin_id }}"] = m;
-        {% endfor %}
+        
+        var color = "#F43F5E";
+        var m = L.circleMarker([9.9928, { { bin.location_lon } }], {
+            color: color, fillColor: color, fillOpacity: 0.9, radius: 7, weight: 2
+        }).addTo(map).bindPopup("<div class='text-center p-1'><strong class='d-block mb-1'>Main Entrance</strong><span class='badge bg-light text-dark border'>100% Full</span></div>");
+        binMarkers["Main Entrance"] = m;
+        
+        var color = "#10B981";
+        var m = L.circleMarker([9.9932, { { bin.location_lon } }], {
+            color: color, fillColor: color, fillOpacity: 0.9, radius: 7, weight: 2
+        }).addTo(map).bindPopup("<div class='text-center p-1'><strong class='d-block mb-1'>MainblockBIN</strong><span class='badge bg-light text-dark border'>45% Full</span></div>");
+        binMarkers["MainblockBIN"] = m;
+        
 
         function calculateCriticalCount(binsData) {
             return binsData.filter(b => b.status === 'Critical').length;
@@ -412,8 +407,6 @@
                 .then(data => {
                     // Update Critical Stat
                     document.getElementById('critical-count').innerText = calculateCriticalCount(data);
-
-                    var bounds = L.latLngBounds(); // Create empty bounds object
 
                     data.forEach(bin => {
                         var themeClass = 'theme-success';
@@ -453,87 +446,52 @@
                         }
 
                         // Map Marker Updates
-                        var iconHtml = `<div class='icon-wrapper' style='border-color: ${mColor}; color: ${mColor};'><i class='bi bi-trash3-fill'></i></div>`;
-                        var customIcon = L.divIcon({
-                            html: iconHtml,
-                            className: 'custom-map-icon',
-                            iconSize: [36, 36],
-                            iconAnchor: [18, 18],
-                            tooltipAnchor: [15, 0]
-                        });
-
                         if (binMarkers[bin.bin_id]) {
-                            // Update existing marker's icon to reflect new color/status
-                            binMarkers[bin.bin_id].setIcon(customIcon);
+                            binMarkers[bin.bin_id].setStyle({ color: mColor, fillColor: mColor });
                             binMarkers[bin.bin_id].setPopupContent(`<div class='text-center p-1'><strong class='d-block mb-1'>${bin.bin_id}</strong><span class='badge bg-light text-dark border'>${bin.fill_level}% Full</span></div>`);
-                        } else {
-                            // If marker doesn't exist (e.g. newly deployed), create it with permanent tooltip
-                            var m = L.marker([bin.location_lat, bin.location_lon], { icon: customIcon })
-                                .addTo(map)
-                                .bindPopup(`<div class='text-center p-1'><strong class='d-block mb-1'>${bin.bin_id}</strong><span class='badge bg-light text-dark border'>${bin.fill_level}% Full</span></div>`)
-                                .bindTooltip(bin.bin_id, { permanent: true, direction: 'right', className: 'fw-bold bg-white text-dark shadow-sm border-0 py-1 px-2 rounded-pill', offset: [15, 0] });
-                            binMarkers[bin.bin_id] = m;
                         }
+                    });
+                });
 
-                        // Add marker location to bounds
-                        bounds.extend([bin.location_lat, bin.location_lon]);
+            // Fetch Collectors Data
+            fetch('/api/get_collectors')
+                .then(res => res.json())
+                .then(data => {
+                    // Update Collector Stat Count
+                    document.getElementById('collector-count').innerText = data.length;
+
+                    // Track active collectors in this cycle
+                    var currentCollectors = new Set();
+
+                    data.forEach(driver => {
+                        if (driver.lat && driver.lon) {
+                            currentCollectors.add(driver.name);
+
+                            // FIX: Check if marker exists, if so update position, if not create
+                            if (collectorMarkers[driver.name]) {
+                                collectorMarkers[driver.name].setLatLng([driver.lat, driver.lon]);
+                            } else {
+                                var driverMarker = L.circleMarker([driver.lat, driver.lon], {
+                                    color: 'white', fillColor: '#4F46E5', fillOpacity: 1, radius: 8, weight: 2
+                                }).addTo(map).bindPopup(`<strong><i class='bi bi-truck text-primary me-1'></i> ${driver.name}</strong>`);
+                                collectorMarkers[driver.name] = driverMarker;
+                            }
+                        }
                     });
 
-                    // Fetch Collectors Data
-                    fetch('/api/get_collectors')
-                        .then(res => res.json())
-                        .then(collectorsData => {
-                            // Update Collector Stat Count
-                            document.getElementById('collector-count').innerText = collectorsData.length;
-
-                            // Track active collectors in this cycle
-                            var currentCollectors = new Set();
-
-                            collectorsData.forEach(driver => {
-                                if (driver.lat && driver.lon) {
-                                    currentCollectors.add(driver.name);
-
-                                    // Removed driver location from bounds so map stays tightly zoomed on bins
-
-                                    var truckIconHtml = `<div class='icon-wrapper' style='border-color: #4F46E5; color: white; background-color: #4F46E5;'><i class='bi bi-truck'></i></div>`;
-                                    var customTruckIcon = L.divIcon({
-                                        html: truckIconHtml,
-                                        className: 'custom-map-icon',
-                                        iconSize: [36, 36],
-                                        iconAnchor: [18, 18],
-                                        tooltipAnchor: [15, 0]
-                                    });
-
-                                    // FIX: Check if marker exists, if so update position, if not create
-                                    if (collectorMarkers[driver.name]) {
-                                        collectorMarkers[driver.name].setLatLng([driver.lat, driver.lon]);
-                                    } else {
-                                        var driverMarker = L.marker([driver.lat, driver.lon], { icon: customTruckIcon })
-                                            .addTo(map).bindPopup(`<strong><i class='bi bi-truck text-primary me-1'></i> ${driver.name}</strong>`);
-                                        collectorMarkers[driver.name] = driverMarker;
-                                    }
-                                }
-                            });
-
-                            // FIX: Remove markers for drivers who are no longer active
-                            Object.keys(collectorMarkers).forEach(driverName => {
-                                if (!currentCollectors.has(driverName)) {
-                                    map.removeLayer(collectorMarkers[driverName]);
-                                    delete collectorMarkers[driverName];
-                                }
-                            });
-
-                            // Automatically fit map to show all bins if bounds is valid
-                            if (bounds.isValid()) {
-                                map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
-                            }
-                        });
+                    // FIX: Remove markers for drivers who are no longer active
+                    Object.keys(collectorMarkers).forEach(driverName => {
+                        if (!currentCollectors.has(driverName)) {
+                            map.removeLayer(collectorMarkers[driverName]);
+                            delete collectorMarkers[driverName];
+                        }
+                    });
                 });
         }
 
         // Set Critical / Collector counts on initial mount
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('critical-count').innerText = "{{ bins|selectattr('status', 'equalto', 'Critical')|list|length }}";
+            document.getElementById('critical-count').innerText = "1";
             updateDashboard(); // Run once immediately
         });
 

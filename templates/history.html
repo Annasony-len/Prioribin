@@ -72,6 +72,18 @@
             </a>
         </div>
 
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card history-card rounded-card shadow-sm p-4">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center gap-2"><i
+                            class="bi bi-graph-up-arrow text-primary"></i> Area Behavior Profiling</h5>
+                    <div style="height: 300px; width: 100%;">
+                        <canvas id="profilingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card history-card rounded-card shadow-sm overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-custom table-hover mb-0 align-middle">
@@ -148,6 +160,41 @@
         </div>
     </div>
 
+    <!-- Chart.js for Profiling Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('profilingChart').getContext('2d');
+        var chartLabels = {{ chart_labels | default ('[]') | safe }};
+        var chartData = {{ chart_data | default ('[]') | safe }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Fill Level (%)',
+                    data: chartData,
+                    borderColor: '#4F46E5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: '#F43F5E',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

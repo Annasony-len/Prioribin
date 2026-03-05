@@ -1,0 +1,152 @@
+<script>
+        // Initialize Leaflet Map
+        var map = L.map('map').setView([9.9312, 76.2673], 12);
+        // Using Google Maps vibrant streets style
+        L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+        }).addTo(map);
+
+        var tempMarker = null;
+
+        // Map Click to Set Coordinates
+        map.on('click', function (e) {
+            var lat = e.latlng.lat;
+            var lon = e.latlng.lng;
+
+            // Populate Input Fields
+            document.querySelector('input[name="lat"]').value = lat.toFixed(6);
+            document.querySelector('input[name="lon"]').value = lon.toFixed(6);
+
+            // Add or move temporary marker
+            if (tempMarker) {
+                tempMarker.setLatLng(e.latlng);
+            } else {
+                tempMarker = L.marker(e.latlng).addTo(map).bindPopup("Deployment Location").openPopup();
+            }
+        });
+
+        // Dictionaries to track markers so we can update them without recreating
+        var binMarkers = {};
+        var collectorMarkers = {};
+
+        // Initial pass to render existing bins locally via template engine
+        
+        var color = "#F43F5E";
+        var m = L.circleMarker([9.9928, { { bin.location_lon } }], {
+            color: color, fillColor: color, fillOpacity: 0.9, radius: 7, weight: 2
+        }).addTo(map).bindPopup("<div class='text-center p-1'><strong class='d-block mb-1'>Main Entrance</strong><span class='badge bg-light text-dark border'>100% Full</span></div>");
+        binMarkers["Main Entrance"] = m;
+        
+        var color = "#F43F5E";
+        var m = L.circleMarker([9.9932, { { bin.location_lon } }], {
+            color: color, fillColor: color, fillOpacity: 0.9, radius: 7, weight: 2
+        }).addTo(map).bindPopup("<div class='text-center p-1'><strong class='d-block mb-1'>MainblockBIN</strong><span class='badge bg-light text-dark border'>100% Full</span></div>");
+        binMarkers["MainblockBIN"] = m;
+        
+
+        function calculateCriticalCount(binsData) {
+            return binsData.filter(b => b.status === 'Critical').length;
+        }
+
+        // --- REAL-TIME DATA FETCHING ---
+        function updateDashboard() {
+            // Fetch Bins Data
+            fetch('/api/get_all_bins')
+                .then(res => res.json())
+                .then(data => {
+                    // Update Critical Stat
+                    document.getElementById('critical-count').innerText = calculateCriticalCount(data);
+
+                    data.forEach(bin => {
+                        var themeClass = 'theme-success';
+                        var badgeClass = 'theme-success-badge';
+                        var mColor = '#10B981'; // emerald
+
+                        if (bin.status === 'Critical') {
+                            themeClass = 'theme-danger';
+                            badgeClass = 'theme-danger-badge';
+                            mColor = '#F43F5E'; // rose
+                        } else if (bin.status === 'Warning') {
+                            themeClass = 'theme-warning';
+                            badgeClass = 'theme-warning-badge';
+                            mColor = '#F59E0B'; // amber
+                        }
+
+                        // DOM Updates for DOM Elements
+                        var card = document.getElementById('card-' + bin.bin_id);
+                        if (card) {
+                            card.className = `card bin-card h-100 shadow-sm rounded-card shadow-hover ${themeClass}`;
+                        }
+
+                        var badge = document.getElementById('status-' + bin.bin_id);
+                        if (badge) {
+                            badge.className = `badge rounded-pill fw-medium px-2 py-1 ${badgeClass}`;
+                            badge.innerText = bin.status;
+                        }
+
+                        var text = document.getElementById('text-' + bin.bin_id);
+                        if (text) {
+                            text.innerHTML = `${bin.fill_level}<span class="fs-4">%</span>`;
+                        }
+
+                        var bar = document.getElementById('bar-' + bin.bin_id);
+                        if (bar) {
+                            bar.style.width = bin.fill_level + '%';
+                        }
+
+                        // Map Marker Updates
+                        if (binMarkers[bin.bin_id]) {
+                            binMarkers[bin.bin_id].setStyle({ color: mColor, fillColor: mColor });
+                            binMarkers[bin.bin_id].setPopupContent(`<div class='text-center p-1'><strong class='d-block mb-1'>${bin.bin_id}</strong><span class='badge bg-light text-dark border'>${bin.fill_level}% Full</span></div>`);
+                        }
+                    });
+                });
+
+            // Fetch Collectors Data
+            fetch('/api/get_collectors')
+                .then(res => res.json())
+                .then(data => {
+                    // Update Collector Stat Count
+                    document.getElementById('collector-count').innerText = data.length;
+
+                    // Track active collectors in this cycle
+                    var currentCollectors = new Set();
+
+                    data.forEach(driver => {
+                        if (driver.lat && driver.lon) {
+                            currentCollectors.add(driver.name);
+
+                            // FIX: Check if marker exists, if so update position, if not create
+                            if (collectorMarkers[driver.name]) {
+                                collectorMarkers[driver.name].setLatLng([driver.lat, driver.lon]);
+                            } else {
+                                var driverMarker = L.circleMarker([driver.lat, driver.lon], {
+                                    color: 'white', fillColor: '#4F46E5', fillOpacity: 1, radius: 8, weight: 2
+                                }).addTo(map).bindPopup(`<strong><i class='bi bi-truck text-primary me-1'></i> ${driver.name}</strong>`);
+                                collectorMarkers[driver.name] = driverMarker;
+                            }
+                        }
+                    });
+
+                    // FIX: Remove markers for drivers who are no longer active
+                    Object.keys(collectorMarkers).forEach(driverName => {
+                        if (!currentCollectors.has(driverName)) {
+                            map.removeLayer(collectorMarkers[driverName]);
+                            delete collectorMarkers[driverName];
+                        }
+                    });
+                });
+        }
+
+        // Set Critical / Collector counts on initial mount
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('critical-count').innerText = "2";
+            updateDashboard(); // Run once immediately
+        });
+
+        setInterval(updateDashboard, 2000);
+    </script>
+</body>
+
+</html>

@@ -8,6 +8,7 @@ app = Flask(__name__, instance_relative_config=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///prioribin.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'dev'
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 db.init_app(app)
 
@@ -46,7 +47,23 @@ def admin_dashboard():
 @app.route('/history/<bin_id>')
 def bin_history(bin_id):
     logs = BinHistory.query.filter_by(bin_id=bin_id).order_by(BinHistory.timestamp.desc()).all()
-    return render_template('history.html', logs=logs, bin_id=bin_id)
+    
+    import json
+    import re
+    graph_labels = []
+    graph_data = []
+    
+    for log in reversed(logs):
+        if log.event_type == 'Collection':
+            graph_labels.append(log.timestamp.strftime('%m-%d %H:%M'))
+            graph_data.append(0)
+        elif log.event_type == 'Critical Alert':
+            match = re.search(r'Sensor: (\d+)%', log.description)
+            level = int(match.group(1)) if match else 100
+            graph_labels.append(log.timestamp.strftime('%m-%d %H:%M'))
+            graph_data.append(level)
+            
+    return render_template('history.html', logs=logs, bin_id=bin_id, chart_labels=json.dumps(graph_labels), chart_data=json.dumps(graph_data))
 
 # NEW: Collector Login Page
 @app.route('/collector_login')
