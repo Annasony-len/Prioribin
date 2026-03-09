@@ -47,8 +47,8 @@
         }
 
         .blob-1 {
-            width: 40vw;
-            height: 40vw;
+            width: clamp(300px, 40vw, 600px);
+            height: clamp(300px, 40vw, 600px);
             background: #4ade80;
             top: -10vh;
             left: 0vw;
@@ -56,8 +56,8 @@
         }
 
         .blob-2 {
-            width: 35vw;
-            height: 35vw;
+            width: clamp(250px, 35vw, 500px);
+            height: clamp(250px, 35vw, 500px);
             background: #10b981;
             bottom: 5vh;
             right: 10vw;
@@ -66,8 +66,8 @@
         }
 
         .blob-3 {
-            width: 30vw;
-            height: 30vw;
+            width: clamp(200px, 30vw, 450px);
+            height: clamp(200px, 30vw, 450px);
             background: #a7f3d0;
             top: 40vh;
             left: 30vw;
@@ -127,18 +127,20 @@
         }
 
         .hero-title {
-            font-size: 4rem;
+            font-size: clamp(2.5rem, 8vw, 4rem);
             font-weight: 800;
             color: var(--dark);
             letter-spacing: -0.05em;
+            text-align: center;
         }
 
         .hero-subtitle {
-            font-size: 1.25rem;
+            font-size: clamp(1rem, 3vw, 1.25rem);
             color: var(--text-muted);
             font-weight: 400;
             max-width: 600px;
             text-align: center;
+            padding: 0 1rem;
         }
 
         /* Scroll prompt */
