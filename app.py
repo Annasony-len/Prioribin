@@ -107,8 +107,8 @@ def collector_dashboard():
         collector.last_active = datetime.utcnow()
         db.session.commit()
 
-    priority_bins = WasteBin.query.filter(WasteBin.status.in_(['Warning', 'Critical'])).all()
-    return render_template('collector.html', bins=priority_bins, collector_name=session.get('collector_name'), collector_username=session.get('collector_username'))
+    all_bins = WasteBin.query.all()
+    return render_template('collector.html', bins=all_bins, collector_name=session.get('collector_name'), collector_username=session.get('collector_username'))
 
 @app.route('/admin/register_collector', methods=['POST'])
 def register_collector():
