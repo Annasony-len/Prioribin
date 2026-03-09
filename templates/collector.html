@@ -282,7 +282,8 @@
             {% endfor %}
         </div>
 
-        <a href="/" class="btn btn-end-shift w-100 d-flex align-items-center justify-content-center gap-2">
+        <a href="/collector_logout"
+            class="btn btn-end-shift w-100 d-flex align-items-center justify-content-center gap-2">
             <i class="bi bi-x-circle-fill"></i> End Shift & Logout
         </a>
     </div>
@@ -311,7 +312,7 @@
         var lat = {{ bin.location_lat }};
         var lon = {{ bin.location_lon }};
         binLocations.push(L.latLng(lat, lon));
-        var mColor = "{{ '#F43F5E' if bin.status == 'Critical' else '#F59E0B' }}";
+        var mColor = "{{ '#DC3545' if bin.status == 'Critical' else '#fd7e14' }}";
         L.circleMarker([lat, lon], {
             color: mColor, fillColor: mColor, radius: 10, fillOpacity: 0.9, weight: 2
         }).addTo(map).bindPopup("<strong>{{ bin.bin_id }}</strong>");
@@ -323,6 +324,7 @@
         var isNavigating = false;
         var driverLat = null;
         var driverLon = null;
+        var collectorUsername = "{{ collector_username }}";
 
         // --- GPS & TRACKING LOGIC ---
         function startTracking() {
@@ -404,7 +406,7 @@
                     fetch('/api/update_location', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: collectorName, lat: lat, lon: lon })
+                        body: JSON.stringify({ name: collectorName, username: collectorUsername, lat: lat, lon: lon })
                     });
                 }, (err) => {
                     console.error(err);

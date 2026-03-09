@@ -1,9 +1,14 @@
 import requests
 import time
 import random
+import argparse
 
 # --- CONFIGURATION ---
-BASE_URL = 'https://prioribin.pythonanywhere.com'
+parser = argparse.ArgumentParser(description="Prioribin Edge Intelligence Simulator")
+parser.add_argument("--url", type=str, default="http://127.0.0.1:5000", help="Base URL of the Prioribin Server")
+args = parser.parse_args()
+
+BASE_URL = args.url
 UPDATE_URL = f'{BASE_URL}/api/update_bin'
 GET_BINS_URL = f'{BASE_URL}/api/get_all_bins'
 

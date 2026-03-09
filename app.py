@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from models import db, WasteBin, BinHistory, Collector
 
 app = Flask(__name__, instance_relative_config=True)
@@ -42,11 +42,15 @@ def home():
 @app.route('/admin')
 def admin_dashboard():
     bins = WasteBin.query.order_by(WasteBin.fill_level.desc()).all()
-    return render_template('admin.html', bins=bins)
+    # Fetch active collectors for the new UI
+    cutoff = datetime.utcnow() - timedelta(minutes=5)
+    active_collectors = Collector.query.filter(Collector.last_active >= cutoff).all()
+    all_collectors = Collector.query.all()
+    return render_template('admin.html', bins=bins, active_collectors=active_collectors, all_collectors=all_collectors)
 
 @app.route('/history/<bin_id>')
 def bin_history(bin_id):
-    logs = BinHistory.query.filter_by(bin_id=bin_id).order_by(BinHistory.timestamp.desc()).all()
+    logs = BinHistory.query.filter_by(bin_id=bin_id).order_by(BinHistory.timestamp.desc()).limit(50).all()
     
     import json
     import re
@@ -57,7 +61,7 @@ def bin_history(bin_id):
         if log.event_type == 'Collection':
             graph_labels.append(log.timestamp.strftime('%m-%d %H:%M'))
             graph_data.append(0)
-        elif log.event_type == 'Critical Alert':
+        elif log.event_type in ['Critical Alert', 'Update']:
             match = re.search(r'Sensor: (\d+)%', log.description)
             level = int(match.group(1)) if match else 100
             graph_labels.append(log.timestamp.strftime('%m-%d %H:%M'))
@@ -66,26 +70,64 @@ def bin_history(bin_id):
     return render_template('history.html', logs=logs, bin_id=bin_id, chart_labels=json.dumps(graph_labels), chart_data=json.dumps(graph_data))
 
 # NEW: Collector Login Page
-@app.route('/collector_login')
+@app.route('/collector_login', methods=['GET', 'POST'])
 def collector_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        collector = Collector.query.filter_by(username=username).first()
+        if collector and collector.check_password(password):
+            session['collector_id'] = collector.id
+            session['collector_name'] = collector.name
+            session['collector_username'] = collector.username
+            collector.last_active = datetime.utcnow()
+            db.session.commit()
+            return redirect(url_for('collector_dashboard'))
+        else:
+            flash('Invalid username or password', 'error')
+            
     return render_template('collector_login.html')
+
+@app.route('/collector_logout')
+def collector_logout():
+    session.pop('collector_id', None)
+    session.pop('collector_name', None)
+    session.pop('collector_username', None)
+    return redirect(url_for('home'))
 
 @app.route('/collector')
 def collector_dashboard():
-    # Helper: Check if collector is "logged in" via URL param (simple method)
-    name = request.args.get('name')
-    if not name:
+    if 'collector_id' not in session:
         return redirect(url_for('collector_login'))
     
-    # Register/Update Collector in DB
-    collector = Collector.query.filter_by(name=name).first()
-    if not collector:
-        collector = Collector(name=name)
-        db.session.add(collector)
+    collector_id = session['collector_id']
+    collector = Collector.query.get(collector_id)
+    if collector:
+        collector.last_active = datetime.utcnow()
         db.session.commit()
 
     priority_bins = WasteBin.query.filter(WasteBin.status.in_(['Warning', 'Critical'])).all()
-    return render_template('collector.html', bins=priority_bins, collector_name=name)
+    return render_template('collector.html', bins=priority_bins, collector_name=session.get('collector_name'), collector_username=session.get('collector_username'))
+
+@app.route('/admin/register_collector', methods=['POST'])
+def register_collector():
+    name = request.form.get('name')
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    if name and username and password:
+        existing = Collector.query.filter_by(username=username).first()
+        if not existing:
+            new_collector = Collector(name=name, username=username)
+            new_collector.set_password(password)
+            db.session.add(new_collector)
+            db.session.commit()
+            flash(f'Collector {name} registered successfully!', 'success')
+        else:
+            flash('Username already exists.', 'error')
+            
+    return redirect(url_for('admin_dashboard'))
 
 # --- Data Management Routes ---
 @app.route('/add_bin', methods=['POST'])
@@ -121,14 +163,21 @@ def delete_bin(bin_id):
 def update_location():
     """Receives GPS from Collector Phone"""
     data = request.json
-    name = data.get('name')
+    username = data.get('username')  # Changed from name to username for unique lookup
+    name = data.get('name') 
     lat = data.get('lat')
     lon = data.get('lon')
 
-    collector = Collector.query.filter_by(name=name).first()
+    if username:
+        collector = Collector.query.filter_by(username=username).first()
+    else:
+        # Fallback for older apps temporarily
+        collector = Collector.query.filter_by(name=name).first()
+
     if collector:
-        collector.lat = lat
-        collector.lon = lon
+        if lat and lon: # only update if provided
+            collector.lat = lat
+            collector.lon = lon
         collector.last_active = datetime.utcnow()
         db.session.commit()
         return jsonify({"success": True})
@@ -150,8 +199,15 @@ def update_bin():
     if bin_obj:
         new_level = int(data['fill_level'])
         new_status = calculate_status(new_level)
-        if bin_obj.status != "Critical" and new_status == "Critical":
-            log_event(bin_obj.bin_id, "Critical Alert", f"Sensor: {new_level}%")
+        
+        # Log event if level has changed to ensure graph history
+        if bin_obj.fill_level != new_level:
+            if bin_obj.status != "Critical" and new_status == "Critical":
+                log_event(bin_obj.bin_id, "Critical Alert", f"Sensor: {new_level}%")
+            else:
+                # Log regular update
+                log_event(bin_obj.bin_id, "Update", f"Sensor: {new_level}%")
+
         bin_obj.fill_level = new_level
         bin_obj.status = new_status
         db.session.commit()
