@@ -194,11 +194,36 @@
 
         /* Nav Mode Map Slanted */
         .nav-active-map {
-            transform: perspective(800px) rotateX(50deg);
-            transform-origin: center bottom;
-            height: 150vh !important;
-            margin-top: -50vh !important;
-            transition: transform 0.8s ease, height 0.8s ease, margin-top 0.8s ease;
+            /* Flip rotateX so the bottom (driver) is close and top is far */
+            transform: perspective(800px) rotateX(55deg);
+            transform-origin: 50% 80%;
+            height: 140vh !important;
+            width: 140vw !important;
+            margin-left: -20vw !important;
+            margin-top: -30vh !important;
+            transition: all 0.8s ease;
+        }
+
+        .leaflet-container {
+            background-color: #f1f5f9 !important;
+            /* Hide harsh box lines on tilt */
+        }
+
+        #sky-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40vh;
+            background: linear-gradient(to bottom, #f1f5f9 20%, transparent 100%);
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .sky-active {
+            opacity: 1 !important;
         }
 
         /* Custom Map Icons matching Admin */
@@ -231,6 +256,7 @@
 </head>
 
 <body>
+    <div id="sky-overlay"></div>
     <div id="map"></div>
 
     <!-- Navigation Overlay -->
@@ -398,8 +424,16 @@
 
                     // Update or Create Driver Marker
                     if (!driverMarker) {
-                        driverMarker = L.circleMarker([lat, lon], {
-                            color: 'white', fillColor: '#4F46E5', fillOpacity: 1, radius: 9, weight: 3
+                        var truckIconHtml = `<div class='icon-wrapper' style='border-color: #4F46E5; color: white; background-color: #4F46E5;'><i class='bi bi-truck'></i></div>`;
+                        var customTruckIcon = L.divIcon({
+                            html: truckIconHtml,
+                            className: 'custom-map-icon',
+                            iconSize: [36, 36],
+                            iconAnchor: [18, 18],
+                            tooltipAnchor: [15, 0]
+                        });
+                        driverMarker = L.marker([lat, lon], {
+                            icon: customTruckIcon
                         }).addTo(map).bindPopup(`<strong>You (${collectorName})</strong>`);
                         // Center map on driver initially
                         map.setView([lat, lon], 14);
@@ -536,7 +570,10 @@
                 createMarker: function () { return null; }, // Hide default markers
                 show: false, // Hide default instructions panel
                 lineOptions: {
-                    styles: [{ color: '#2563EB', opacity: 0.9, weight: 6 }] // Distinct blue line representing full route
+                    styles: [
+                        { color: 'white', opacity: 0.8, weight: 10 },
+                        { color: '#2563EB', opacity: 1, weight: 6 }
+                    ] // Distinct bordered blue line representing full route
                 }
             }).addTo(map);
 
@@ -557,12 +594,35 @@
             document.getElementById('btn-end-nav').classList.remove('d-none');
             document.getElementById('main-sidebar').style.display = 'none'; // Hide sidebar
 
+            document.getElementById('sky-overlay').classList.add('sky-active');
             document.getElementById('map').classList.add('nav-active-map');
-            setTimeout(() => { map.invalidateSize(); }, 800);
+
+            // Continuous invalidateSize during animation prevents unrendered edge tiles
+            var count = 0;
+            var intv = setInterval(() => {
+                map.invalidateSize({ pan: false });
+                count++;
+                if (count > 20) clearInterval(intv);
+            }, 40);
 
             if (driverLat && driverLon) {
-                map.setZoom(19);
-                map.panTo([driverLat, driverLon]);
+                // Determine if we have waypoints to look towards
+                if (routingControl && routingControl.getWaypoints().length > 1) {
+                    var waypoints = routingControl.getWaypoints();
+                    var dest = waypoints[1].latLng; // The immediate next stop
+
+                    setTimeout(() => {
+                        // Instead of centering between them, we want to anchor the driver at the bottom
+                        // We pan SLIGHTLY towards the destination so the driver stays in the lower half of the tilted screen
+                        // Leaflet doesn't natively support "pitch/bearing", but panning slightly "forward" fakes it
+                        var latOffset = (dest.lat - driverLat) * 0.3; // Look 30% towards dest
+                        var lonOffset = (dest.lng - driverLon) * 0.3;
+                        map.setView([driverLat + latOffset, driverLon + lonOffset], 17, { animate: true, duration: 0.8 });
+                    }, 300);
+                } else {
+                    map.setZoom(17);
+                    setTimeout(() => { map.panTo([driverLat, driverLon], { animate: true, duration: 0.5 }); }, 300);
+                }
             }
         }
 
@@ -572,11 +632,18 @@
             document.getElementById('btn-end-nav').classList.add('d-none');
             document.getElementById('main-sidebar').style.display = 'flex';
 
+            document.getElementById('sky-overlay').classList.remove('sky-active');
             document.getElementById('map').classList.remove('nav-active-map');
-            setTimeout(() => { map.invalidateSize(); }, 800);
+
+            var count = 0;
+            var intv = setInterval(() => {
+                map.invalidateSize({ pan: false });
+                count++;
+                if (count > 20) clearInterval(intv);
+            }, 40);
 
             if (driverLat && driverLon) {
-                map.setView([driverLat, driverLon], 14); // Zoom out
+                setTimeout(() => { map.setView([driverLat, driverLon], 14, { animate: true, duration: 0.5 }); }, 300);
             }
         }
 
