@@ -27,8 +27,66 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--bg-main) 0%, var(--primary-light) 100%);
+            background: transparent;
             position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* Animated Background Blobs */
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.3;
+            animation: blobFloat 15s infinite alternate ease-in-out;
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+            /* For smooth scroll transform */
+        }
+
+        .blob-1 {
+            width: 40vw;
+            height: 40vw;
+            background: #4ade80;
+            top: -10vh;
+            left: 0vw;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            width: 35vw;
+            height: 35vw;
+            background: #10b981;
+            bottom: 5vh;
+            right: 10vw;
+            animation-delay: -5s;
+            animation-duration: 20s;
+        }
+
+        .blob-3 {
+            width: 30vw;
+            height: 30vw;
+            background: #a7f3d0;
+            top: 40vh;
+            left: 30vw;
+            animation-delay: -10s;
+            animation-duration: 25s;
+        }
+
+        @keyframes blobFloat {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(15vw, -10vh) scale(1.1);
+            }
+
+            100% {
+                transform: translate(-10vw, 15vh) scale(0.9);
+            }
         }
 
         .logo-container {
@@ -122,7 +180,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: white;
+            background: transparent;
             padding: 4rem 2rem;
         }
 
@@ -173,8 +231,14 @@
 
 <body>
 
+    <!-- Fixed Animated Background Elements -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
     <!-- Landing View -->
     <section class="hero-section">
+
         <!-- Logo Animation -->
         <div class="logo-container animate-slide-flip">
             <i class="bi bi-trash3-fill"></i>
@@ -237,6 +301,20 @@
         </div>
     </section>
 
+    <script>
+        // Interactive Scroll Background
+        window.addEventListener('scroll', function () {
+            var scrolled = window.scrollY;
+            var blob1 = document.querySelector('.blob-1');
+            var blob2 = document.querySelector('.blob-2');
+            var blob3 = document.querySelector('.blob-3');
+
+            // Shift blobs downwards smoothly as you scroll
+            if (blob1) blob1.style.transform = `translateY(${scrolled * 0.4}px)`;
+            if (blob2) blob2.style.transform = `translateY(${scrolled * 0.2}px)`;
+            if (blob3) blob3.style.transform = `translateY(${scrolled * -0.3}px)`; // this one goes up!
+        });
+    </script>
 </body>
 
 </html>
