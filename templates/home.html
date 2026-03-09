@@ -15,103 +15,227 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
+            background-color: var(--bg-main);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Hero / Landing Section */
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             background: linear-gradient(135deg, var(--bg-main) 0%, var(--primary-light) 100%);
+            position: relative;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            margin-bottom: 2rem;
+            position: relative;
+            color: var(--primary);
+            /* This triggers the slide and flip from style.css */
+        }
+
+        .logo-container .bi-trash3-fill {
+            font-size: 3.5rem;
+        }
+
+        /* Adding a sensor 'wifi' badge to the corner of the bin logo */
+        .sensor-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: var(--shadow-md);
+            border: 3px solid white;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: -0.05em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        /* Scroll prompt */
+        .scroll-prompt {
+            position: absolute;
+            bottom: 40px;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            animation: bounce 2s infinite;
+            text-decoration: none;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-15px);
+            }
+
+            60% {
+                transform: translateY(-7px);
+            }
+        }
+
+        /* Action Section */
+        .action-section {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            background-color: white;
+            padding: 4rem 2rem;
         }
 
-        .hero-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+        .login-card {
+            background: var(--bg-main);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             border-radius: var(--radius-lg);
-            padding: 4rem;
-            max-width: 600px;
-            width: 90%;
+            padding: 3rem;
             text-align: center;
-            box-shadow: var(--shadow-xl);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        .logo-icon {
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-light);
+        }
+
+        .login-icon {
             font-size: 3rem;
             color: var(--primary);
-            margin-bottom: 1rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
+            margin-bottom: 1.5rem;
+            background: white;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-custom {
             padding: 1rem 2rem;
-            font-size: 1.1rem;
+            font-weight: 600;
             border-radius: var(--radius-md);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-admin {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-        }
-
-        .btn-admin:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-            color: white;
-        }
-
-        .btn-collector {
-            background-color: white;
-            color: var(--dark);
-            border: 2px solid #E2E8F0;
-        }
-
-        .btn-collector:hover {
-            border-color: var(--success);
-            color: var(--success);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.15);
+            width: 100%;
+            margin-top: 1.5rem;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="hero-card">
-        <i class="bi bi-trash3-fill logo-icon"></i>
-        <h1 class="fw-bold mb-3">Prioribin</h1>
-        <p class="text-muted mb-5 fs-5">Smart Waste Management System</p>
-
-        <div class="d-flex flex-column gap-3">
-            <a href="/admin" class="btn btn-custom btn-admin">
-                <i class="bi bi-shield-lock"></i> Go to Admin Dashboard
-            </a>
-            <a href="/collector_login" class="btn btn-custom btn-collector">
-                <i class="bi bi-truck"></i> Login as Collector
-            </a>
+    <!-- Landing View -->
+    <section class="hero-section">
+        <!-- Logo Animation -->
+        <div class="logo-container animate-slide-flip">
+            <i class="bi bi-trash3-fill"></i>
+            <div class="sensor-badge">
+                <i class="bi bi-wifi"></i>
+            </div>
         </div>
-    </div>
+
+        <h1 class="hero-title animate-fade-in delay-1">PRIORIBIN</h1>
+        <p class="hero-subtitle animate-fade-in delay-2 mt-3">
+            Intelligent Sensor-Driven Waste Routing
+        </p>
+
+        <a href="#login-section" class="scroll-prompt animate-fade-in delay-3">
+            <span class="small text-uppercase tracking-wide">Scroll to Explore</span>
+            <i class="bi bi-chevron-down fs-4"></i>
+        </a>
+    </section>
+
+    <!-- Login Selection View -->
+    <section id="login-section" class="action-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Select Your Portal</h2>
+                <p class="text-muted">Choose your access level to manage the smart bin network.</p>
+            </div>
+
+            <div class="row g-4 justify-content-center max-w-4xl mx-auto">
+                <!-- Admin Card -->
+                <div class="col-md-5">
+                    <div class="login-card">
+                        <div class="login-icon">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <h4 class="fw-bold">Administrator</h4>
+                        <p class="text-muted small mb-0">Manage bins, track collectors, and view real-time maps and
+                            analytics.</p>
+                        <a href="/admin" class="btn btn-primary btn-custom shadow-hover">
+                            Access Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Collector Card -->
+                <div class="col-md-5">
+                    <div class="login-card">
+                        <div class="login-icon text-success">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <h4 class="fw-bold">Route Collector</h4>
+                        <p class="text-muted small mb-0">View priority collection routes, update bin status, and
+                            navigate maps.</p>
+                        <a href="/collector_login" class="btn btn-outline-success btn-custom shadow-hover"
+                            style="border-width: 2px;">
+                            Start Route
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
 </body>
 

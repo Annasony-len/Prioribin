@@ -3,36 +3,49 @@
 
 :root {
     /* Color Palette */
-    --primary: #4F46E5; /* Indigo 600 */
-    --primary-hover: #4338CA; /* Indigo 700 */
-    --primary-light: #EEF2FF; /* Indigo 50 */
-    
-    --success: #10B981; /* Emerald 500 */
-    --success-light: #D1FAE5; /* Emerald 50 */
-    
-    --danger: #F43F5E; /* Rose 500 */
-    --danger-light: #FFE4E6; /* Rose 50 */
-    
-    --warning: #F59E0B; /* Amber 500 */
-    --warning-light: #FEF3C7; /* Amber 50 */
-    
-    --dark: #1E293B; /* Slate 800 */
-    --text-main: #334155; /* Slate 700 */
-    --text-muted: #64748B; /* Slate 500 */
-    
-    --bg-main: #F8FAFC; /* Slate 50 */
+    --primary: #0F5132;
+    /* Deep Dark Green */
+    --primary-hover: #146c43;
+    /* Medium Dark Green */
+    --primary-light: #d1e7dd;
+    /* Pale Mint */
+
+    --success: #198754;
+    /* Emerald */
+    --success-light: #e8f5e9;
+    /* Light Emerald */
+
+    --danger: #DC3545;
+    /* Red */
+    --danger-light: #F8D7DA;
+    /* Light Red */
+
+    --warning: #fd7e14;
+    /* Orange/Amber */
+    --warning-light: #ffeeba;
+    /* Light Amber */
+
+    --dark: #212529;
+    /* Slate 900 */
+    --text-main: #495057;
+    /* Slate 700 */
+    --text-muted: #6c757d;
+    /* Slate 500 */
+
+    --bg-main: #F4F7F6;
+    /* Soft green-gray background */
     --bg-card: #FFFFFF;
-    
+
     /* Layout & Shadows */
     --radius-sm: 0.5rem;
     --radius-md: 1rem;
     --radius-lg: 1.5rem;
-    
+
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    
+
     --glass-bg: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(255, 255, 255, 0.2);
 }
@@ -49,13 +62,16 @@ body {
     width: 8px;
     height: 8px;
 }
+
 ::-webkit-scrollbar-track {
     background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
     background: #CBD5E1;
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: #94A3B8;
 }
@@ -75,6 +91,7 @@ body {
 .shadow-hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .shadow-hover:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-xl);
@@ -85,7 +102,12 @@ body {
 }
 
 /* Typography Overrides */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     color: var(--dark);
     font-weight: 600;
 }
@@ -103,6 +125,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--primary);
     border-color: var(--primary);
 }
+
 .btn-primary:hover {
     background-color: var(--primary-hover);
     border-color: var(--primary-hover);
@@ -115,26 +138,86 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--bg-card);
     transition: all 0.3s ease;
 }
+
 .card-header {
     background-color: transparent;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
+
 .card-footer {
     background-color: transparent;
-    border-top: 1px solid rgba(0,0,0,0.05);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Form Controls */
-.form-control, .input-group-text {
+.form-control,
+.input-group-text {
     border-radius: var(--radius-sm);
     border: 1px solid #E2E8F0;
     padding: 0.6rem 1rem;
 }
+
 .form-control:focus {
     box-shadow: 0 0 0 3px var(--primary-light);
     border-color: var(--primary);
 }
+
 .input-group-text {
     background-color: #F8FAFC;
     color: var(--text-muted);
+}
+
+/* Custom Animations for Home Page */
+@keyframes slideFlip {
+    0% {
+        transform: translateX(-150%) rotateY(0deg);
+        opacity: 0;
+    }
+
+    50% {
+        transform: translateX(20%) rotateY(180deg);
+        opacity: 1;
+    }
+
+    75% {
+        transform: translateX(-10%) rotateY(360deg);
+    }
+
+    100% {
+        transform: translateX(0) rotateY(360deg);
+        opacity: 1;
+    }
+}
+
+.animate-slide-flip {
+    animation: slideFlip 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    opacity: 0;
+    animation: fadeIn 1s ease forwards;
+}
+
+.delay-1 {
+    animation-delay: 1.2s;
+}
+
+.delay-2 {
+    animation-delay: 1.5s;
+}
+
+.delay-3 {
+    animation-delay: 1.8s;
 }
